@@ -1,0 +1,13 @@
+venv
+__pycache__
+pyhidpp/__pycache__
+.idea
+build/
+*.egg-info
+test.py
+*_custom.py
+*.log
+*.txt
+*.ini
+.idea
+!pyhidpp/security/x1602.ini
