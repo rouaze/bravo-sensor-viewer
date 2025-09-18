@@ -218,8 +218,7 @@ hidpp.log
 # Encrypted password files (security)
 passwords_enc_*.ini
 
-# Embedded git repositories
-Vibration_test_scripts/pyhidpp/
+# Note: pyhidpp is included as an embedded library (not excluded)
 
 # VS Code settings (optional - uncomment if you want to ignore)
 # .vscode/
