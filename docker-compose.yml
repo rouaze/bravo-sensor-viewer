@@ -1,0 +1,118 @@
+# Docker Compose for Bravo Sensor Viewer v2.0.0
+# Handles GUI display and USB device access
+
+version: '3.8'
+
+services:
+  bravo-sensor-viewer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bravo-sensor-viewer
+    restart: unless-stopped
+    
+    # GUI Display (X11 forwarding)
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_X11_NO_MITSHM=1
+      - PYTHONUNBUFFERED=1
+    
+    volumes:
+      # X11 socket for GUI
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/home/sensorapp/.Xauthority:ro
+      # Application data persistence
+      - ./logs:/app/logs
+      - ./config:/app/config
+      # Development mode - mount source code (comment out for production)
+      - .:/app:rw
+    
+    # USB device access - ALL USB devices (adjust as needed for security)
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    
+    # Additional device access for HID devices
+    privileged: false
+    device_cgroup_rules:
+      - 'c 189:* rmw'  # USB device access
+      - 'c 13:* rmw'   # Input devices
+    
+    # Network mode for localhost access if needed
+    network_mode: host
+    
+    # Alternative service for console-only testing
+  bravo-sensor-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bravo-sensor-test
+    restart: "no"
+    
+    environment:
+      - PYTHONUNBUFFERED=1
+    
+    volumes:
+      - ./logs:/app/logs
+      - .:/app:rw
+    
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    
+    device_cgroup_rules:
+      - 'c 189:* rmw'
+      - 'c 13:* rmw'
+    
+    # Override command for testing
+    command: ["python", "simple_sensor_test.py"]
+    
+    profiles:
+      - testing
+
+  # Development service with hot-reload
+  bravo-sensor-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder  # Use builder stage for development
+    container_name: bravo-sensor-dev
+    restart: "no"
+    
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_X11_NO_MITSHM=1
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/home/sensorapp/.Xauthority:ro
+      - .:/app:rw
+      - ./logs:/app/logs
+    
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    
+    device_cgroup_rules:
+      - 'c 189:* rmw'
+      - 'c 13:* rmw'
+    
+    network_mode: host
+    
+    # Keep container running for development
+    tty: true
+    stdin_open: true
+    
+    profiles:
+      - development
+
+# Named volumes for data persistence (optional)
+volumes:
+  sensor_logs:
+    driver: local
+  sensor_config:
+    driver: local
+
+# Networks (optional - using host network for simplicity)
+networks:
+  default:
+    driver: bridge

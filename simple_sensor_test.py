@@ -5,6 +5,13 @@ Simple console test to verify sensor is working continuously
 
 import time
 import logging
+
+# Import version information
+try:
+    from version import __version__, get_version_string
+except ImportError:
+    __version__ = "2.0.0"
+    get_version_string = lambda: f"v{__version__}"
 from pyhidpp.core.devices_manager import DevicesManager
 from pyhidpp.security import SecurityManager
 from pyhidpp.features.x9402 import X9402
@@ -12,16 +19,23 @@ from pyhidpp.features.x9402 import X9402
 def test_continuous_readings():
     """Test continuous sensor readings in console"""
     
-    print("🔍 Simple Sensor Test - Console Output")
+    print(f"🔍 Simple Sensor Test - Console Output {get_version_string()}")
     print("=" * 50)
     
     try:
         # Connect to device
         dev_manager = DevicesManager(log_to_console=False, log_level=logging.WARNING)
-        mouse = dev_manager.connect_with_name("Bravo")
+        compatible_devices = ["Bravo", "Malacca", "Spotlight 2"]
+        mouse = None
+        
+        for device_name in compatible_devices:
+            mouse = dev_manager.connect_with_name(device_name)
+            if mouse:
+                print(f"✅ Connected to {device_name}")
+                break
         
         if not mouse:
-            print("❌ Could not connect to Bravo device")
+            print("❌ Could not connect to any compatible device (Bravo, Malacca, Spotlight 2)")
             return
         
         print("✅ Connected to Bravo")

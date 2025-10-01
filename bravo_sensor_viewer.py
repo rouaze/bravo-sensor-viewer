@@ -5,6 +5,15 @@ Updated sensor viewer for Bravo device with proper initialization order
 
 import sys
 import os
+
+# Import version information from centralized version file
+try:
+    from version import __version__, __build_date__, get_version_string
+except ImportError:
+    # Fallback if version.py is not available
+    __version__ = "2.0.0"
+    __build_date__ = "2025-01-10"
+    get_version_string = lambda: f"v{__version__} ({__build_date__})"
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -66,7 +75,7 @@ class MatplotlibCanvas(FigureCanvas):
 class BravoSensorWindow(QMainWindow):
     def __init__(self):
         super(BravoSensorWindow, self).__init__()
-        self.setWindowTitle("Bravo Sensor Viewer - Professional Force Calibration Tool")
+        self.setWindowTitle(f"Bravo Sensor Viewer v{__version__} - Professional Force Calibration Tool")
         self.resize(1200, 800)  # Much larger default size for professional layout
         
         # Set minimum size to prevent excessive squishing
@@ -101,6 +110,14 @@ class BravoSensorWindow(QMainWindow):
         # Add matplotlib toolbar
         toolbar = NavigationToolbar(self.canvas, self)
         layout.addWidget(toolbar)
+        
+        # Add version info and control buttons
+        version_layout = QHBoxLayout()
+        version_label = QLabel(f"Version {__version__} ({__build_date__})")
+        version_label.setStyleSheet("QLabel { color: #7f8c8d; font-size: 10px; }")
+        version_layout.addStretch()
+        version_layout.addWidget(version_label)
+        layout.addLayout(version_layout)
         
         # Add control buttons
         button_layout = QHBoxLayout()
@@ -337,7 +354,7 @@ class BravoSensorWindow(QMainWindow):
             print(" Creating fresh device manager (USB rescan)...")
             dev_manager = DevicesManager(log_to_console=False, log_level=logging.WARNING)
             print("   USB device scan completed")
-            compatible_devices = ["Bravo", "Malacca"]
+            compatible_devices = ["Bravo", "Malacca", "Spotlight 2"]
             
             connection_attempts = 0
             max_attempts = 2  # Reduced from 3 to 2 attempts
@@ -828,7 +845,7 @@ class BravoSensorWindow(QMainWindow):
             self.mouse.disconnect()
 
 if __name__ == "__main__":
-    print("Starting Bravo Sensor Viewer...")
+    print(f"Starting Bravo Sensor Viewer v{__version__} ({__build_date__})...")
     
     app = QApplication(sys.argv)
     window = BravoSensorWindow()

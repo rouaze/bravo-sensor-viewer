@@ -5,6 +5,13 @@ Simple test script for Bravo device to explore available features and functional
 
 import sys
 import logging
+
+# Import version information
+try:
+    from version import __version__, get_version_string
+except ImportError:
+    __version__ = "2.0.0"
+    get_version_string = lambda: f"v{__version__}"
 from pyhidpp.core.devices_manager import DevicesManager
 from pyhidpp.security import SecurityManager
 
@@ -15,7 +22,7 @@ def test_device_discovery():
     dev_manager = DevicesManager(log_to_console=True, log_level=logging.INFO)
     
     # Try to connect to known devices
-    compatible_devices = ["Bravo", "Malacca", "MX Master 3", "MX Master"]
+    compatible_devices = ["Bravo", "Malacca", "Spotlight 2", "MX Master 3", "MX Master"]
     connected_device = None
     
     for device_name in compatible_devices:
@@ -152,7 +159,7 @@ def test_security_unlock(device):
 
 def main():
     """Main test function"""
-    print("🔍 BRAVO DEVICE FUNCTIONALITY TEST")
+    print(f"🔍 BRAVO DEVICE FUNCTIONALITY TEST {get_version_string()}")
     print("=" * 50)
     
     # Connect to device

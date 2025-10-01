@@ -1,0 +1,104 @@
+# Docker ignore file for Bravo Sensor Viewer v2.0.0
+# Excludes unnecessary files from Docker build context
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Documentation
+*.md
+docs/
+
+# Logs
+*.log
+logs/
+hidpp.log
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# PyInstaller
+*.spec
+
+# Development scripts
+dev-setup.sh
+run.sh
+run.bat
+
+# Docker files (don't copy into container)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Configuration templates (not the actual config)
+*.template
+
+# Large documentation files
+*.pdf
+
+# Package files
+*.deb
+*.rpm
+*.msi
+*.exe
+
+# Backup files
+*.bak
+*.backup
+
+# Runtime data that shouldn't be in image
+config/
+tests/
+
+# Windows specific
+desktop.ini
+
+# macOS specific
+*.DS_Store
+
+# Linux specific
+*~
