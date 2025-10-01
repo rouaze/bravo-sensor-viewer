@@ -95,7 +95,7 @@ class BravoSensorWindow(QMainWindow):
         self.threshold_message = "No thresholds available"
         
         # Calibration variables
-        self.calibration_weight_grams = 150.0  # Default 150 grams
+        self.calibration_weight_grams = 200.0  # Default 200 grams
         self.sensitivity_adc_per_n = None
 
         # Create central widget
@@ -153,9 +153,9 @@ class BravoSensorWindow(QMainWindow):
         
         # Calibration weight input
         calibration_layout.addWidget(QLabel("Calibration Weight:"))
-        self.weight_input = QLineEdit("150.0")
+        self.weight_input = QLineEdit("200.0")
         self.weight_input.setMaximumWidth(80)
-        self.weight_input.setToolTip("Calibration weight in grams (default 150g)")
+        self.weight_input.setToolTip("Calibration weight in grams (default 200g)")
         self.weight_input.textChanged.connect(self.update_calibration)
         calibration_layout.addWidget(self.weight_input)
         calibration_layout.addWidget(QLabel("g"))
