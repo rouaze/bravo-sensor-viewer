@@ -75,7 +75,7 @@ class MatplotlibCanvas(FigureCanvas):
 class BravoSensorWindow(QMainWindow):
     def __init__(self):
         super(BravoSensorWindow, self).__init__()
-        self.setWindowTitle(f"Bravo Sensor Viewer v{__version__} - Professional Force Calibration Tool")
+        self.setWindowTitle(f"SPOTLIGHT 2 Sensor Viewer v{__version__} - Professional Force Calibration Tool")
         self.resize(1200, 800)  # Much larger default size for professional layout
         
         # Set minimum size to prevent excessive squishing
@@ -182,6 +182,31 @@ class BravoSensorWindow(QMainWindow):
         
         # Initialize UI state
         self.start_button.setEnabled(False)
+        self.stop_button.setEnabled(False)
+
+    def disable_ui_during_connection(self):
+        """Disable all interactive UI elements during connection/reconnection"""
+        self.connect_button.setEnabled(False)
+        self.start_button.setEnabled(False)
+        self.stop_button.setEnabled(False)
+        self.clear_button.setEnabled(False)
+        self.weight_input.setEnabled(False)
+        
+        # Update button text to show it's connecting
+        self.connect_button.setText("Connecting...")
+
+    def enable_ui_after_connection(self, sensor_available=False):
+        """Re-enable UI elements after connection attempt (success or failure)"""
+        self.connect_button.setEnabled(True)
+        self.connect_button.setText("Reconnect")
+        self.clear_button.setEnabled(True)
+        self.weight_input.setEnabled(True)
+        
+        # Enable start/stop buttons based on sensor availability
+        if sensor_available:
+            self.start_button.setEnabled(True)
+        else:
+            self.start_button.setEnabled(False)
         self.stop_button.setEnabled(False)
 
     def update_calibration(self):
@@ -354,7 +379,7 @@ class BravoSensorWindow(QMainWindow):
             print(" Creating fresh device manager (USB rescan)...")
             dev_manager = DevicesManager(log_to_console=False, log_level=logging.WARNING)
             print("   USB device scan completed")
-            compatible_devices = ["Bravo", "Malacca", "Spotlight 2"]
+            compatible_devices = ["Bravo", "Malacca", "Spotlight 2", "SPOTLIGHT 2"]
             
             connection_attempts = 0
             max_attempts = 2  # Reduced from 3 to 2 attempts
@@ -379,6 +404,7 @@ class BravoSensorWindow(QMainWindow):
             
             if not self.mouse:
                 self.status_label.setText(" No device found after retries")
+                self.enable_ui_after_connection(sensor_available=False)
                 return False
             
             # Step 2: OPTIMIZED Security unlock with faster retry
@@ -454,6 +480,7 @@ class BravoSensorWindow(QMainWindow):
                 if not self.sensor_available and feature_count < 10:
                     print(f" Only {feature_count} features available - device may need more initialization time")
                     self.status_label.setText(" Device initialization incomplete - try Reconnect")
+                    self.enable_ui_after_connection(sensor_available=False)
                     return False
             
             # Step 5: Initialize sensor and force sensing features
@@ -554,12 +581,13 @@ class BravoSensorWindow(QMainWindow):
             connection_time = time.time() - start_time
             if sensor_init_success:
                 self.status_label.setText(f" Ready - Sensor Available (Connected in {connection_time:.1f}s)")
-                self.start_button.setEnabled(True)
+                self.enable_ui_after_connection(sensor_available=True)
             elif force_init_success:
                 self.status_label.setText(f" Ready - Force Sensing Available (Connected in {connection_time:.1f}s)")
-                self.start_button.setEnabled(True)
+                self.enable_ui_after_connection(sensor_available=True)
             else:
                 self.status_label.setText(f" Device connected, limited functionality (Connected in {connection_time:.1f}s)")
+                self.enable_ui_after_connection(sensor_available=False)
             
             print(f"OPTIMIZED CONNECTION COMPLETED in {connection_time:.1f} seconds")
             return True
@@ -567,6 +595,7 @@ class BravoSensorWindow(QMainWindow):
         except Exception as e:
             print(f" Connection error: {e}")
             self.status_label.setText(f" Error: {e}")
+            self.enable_ui_after_connection(sensor_available=False)
             if hasattr(self, 'mouse') and self.mouse:
                 try:
                     self.mouse.disconnect()
@@ -820,6 +849,16 @@ class BravoSensorWindow(QMainWindow):
                 
                 self.canvas.axs[0].set_ylim(final_min - margin, final_max + margin)
                 
+                # Auto-scale Baseline plot based on recent data (last 20 points)
+                if len(y_data_bl) > 10:
+                    recent_bl = y_data_bl[-20:]
+                    bl_min = min(recent_bl)
+                    bl_max = max(recent_bl)
+                    bl_range = bl_max - bl_min
+                    bl_margin = max(10, bl_range * 0.2)  # At least 10 units margin, 20% of range
+                    
+                    self.canvas.axs[1].set_ylim(bl_min - bl_margin, bl_max + bl_margin)
+                
                 if self.counter % 40 == 0:  # Less frequent debug
                     threshold_info = ""
                     if self.l1_threshold is not None:
@@ -828,6 +867,15 @@ class BravoSensorWindow(QMainWindow):
                             threshold_info += f", L2:{self.l2_threshold}"
                         threshold_info += ")"
                     print(f"  Auto-scaled ADC: [{final_min - margin:.0f}, {final_max + margin:.0f}]{threshold_info}")
+                    
+                    # Debug info for baseline auto-scaling
+                    if len(y_data_bl) > 10:
+                        recent_bl = y_data_bl[-20:]
+                        bl_min = min(recent_bl)
+                        bl_max = max(recent_bl)
+                        bl_range = bl_max - bl_min
+                        bl_margin = max(10, bl_range * 0.2)
+                        print(f"  Auto-scaled Baseline: [{bl_min - bl_margin:.1f}, {bl_max + bl_margin:.1f}]")
 
             # Force canvas redraw
             self.canvas.fig.canvas.draw_idle()  # Use draw_idle for better performance
